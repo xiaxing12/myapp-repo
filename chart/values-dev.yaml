@@ -1,16 +1,16 @@
-replicaCount: 1
+replicaCount: 1                              # dev 环境副本数，等下我们就是改这一行来验证自动同步
 
 image:
-  repository: nginxinc/nginx-unprivileged
-  tag: "1.27"
-  pullPolicy: IfNotPresent
+  repository: ghcr.io/xiaxing12/myapp        # 换成 GitHub Actions 构建出来的镜像
+  tag: "latest"                              # 用 latest 标签
+  pullPolicy: IfNotPresent                   # 本地有就不重新下载，配合集群镜像缓存
 
 service:
   type: ClusterIP
-  port: 80
-  targetPort: 8080
+  port: 80                                   # Service 自己的端口
+  targetPort: 80                             # 转发到容器的 80 端口（标准 nginx 监听 80）
 
-resources:
+resources:                                   # 资源请求和上限
   requests:
     cpu: 100m
     memory: 128Mi
@@ -18,7 +18,7 @@ resources:
     cpu: 200m
     memory: 256Mi
 
-probes:
+probes:                                      # 探针参数
   readiness:
     periodSeconds: 5
     failureThreshold: 3
@@ -27,13 +27,13 @@ probes:
     failureThreshold: 3
 
 ingress:
-  enabled: true
+  enabled: false                             # 新集群里没装 ingress controller，先关掉，避免建了访问不了
   className: nginx
   host: dev.myapp.local
   path: /
 
 hpa:
-  enabled: false
+  enabled: false                             # dev 环境不开自动扩缩容
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 50

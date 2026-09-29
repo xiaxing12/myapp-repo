@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1        # ArgoCD 自定义资源的 API 版本，固定这样写
+kind: Application                        # 资源类型：一个 Application = 一份「Git 期望状态」的声明
+metadata:
+  name: myapp-dev                        # 名字，ArgoCD 界面上显示这个
+  namespace: argocd                      # Application 对象本身必须放在 argocd 命名空间
+spec:
+  project: default                       # 归属的 ArgoCD 项目，用默认的 default 就行
+  source:                                # 【上游】从 Git 哪里取清单
+    repoURL: https://github.com/xiaxing12/myapp-repo.git   # 你的仓库地址
+    targetRevision: main                 # 跟踪哪个分支，改哪个分支就同步哪个
+    path: chart                          # 仓库里 chart 所在目录（相对仓库根目录）
+    helm:                                # 说明这是 Helm Chart，需要先用 Helm 渲染
+      valueFiles:
+        - values-dev.yaml                # 渲染时用哪份值文件（dev 环境参数）
+  destination:                           # 【下游】把渲染结果部署到集群哪里
+    server: https://kubernetes.default.svc    # 部署到本集群（集群内部标准地址）
+    namespace: dev                       # 部署进 dev 命名空间，跟 argocd 隔开
+  syncPolicy:                            # 同步策略，决定「自动化到什么程度」
+    automated:                           # 打开自动同步：Git 一变，集群跟着变
+      prune: true                        # Git 里删掉的资源，集群里也自动删除，防止残留
+      selfHeal: true                     # 有人手动改集群，自动改回 Git 描述的样子
+    syncOptions:
+      - CreateNamespace=true             # dev 命名空间不存在就自动创建

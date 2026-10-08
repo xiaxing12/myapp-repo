@@ -3,6 +3,9 @@ kind: Application                        # 资源类型：一个 Application = �
 metadata:
   name: myapp-dev                        # 名字，ArgoCD 界面上显示这个
   namespace: argocd                      # Application 对象本身必须放在 argocd 命名空间
+  finalizers:                            # 删除本 Application 时，级联删掉它管理的全部资源
+    - resources-finalizer.argocd.argoproj.io
+                                         # 不加这行的话，删 Application 只删记录，dev 里的资源会变成孤儿
 spec:
   project: default                       # 归属的 ArgoCD 项目，用默认的 default 就行
   source:                                # 【上游】从 Git 哪里取清单

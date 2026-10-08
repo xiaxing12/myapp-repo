@@ -1,16 +1,16 @@
-replicaCount: 3
+replicaCount: 3                              # prod 副本数，比 dev 多，保证可用性
 
 image:
-  repository: nginxinc/nginx-unprivileged
-  tag: "1.27"
-  pullPolicy: IfNotPresent
+  repository: ghcr.io/xiaxing12/myapp        # 与 dev 用同一个镜像，靠 values 文件区分环境
+  tag: "latest"                              # 生产建议改用 commit SHA，见手册「已知弱点」
+  pullPolicy: IfNotPresent                   # 本地有就不重新下载
 
 service:
   type: ClusterIP
-  port: 80
-  targetPort: 8080
+  port: 80                                   # Service 端口
+  targetPort: 80                             # 转发到容器 80（标准 nginx 监听 80）
 
-resources:
+resources:                                   # 生产资源配额比 dev 给得多
   requests:
     cpu: 200m
     memory: 256Mi
@@ -18,7 +18,7 @@ resources:
     cpu: 500m
     memory: 512Mi
 
-probes:
+probes:                                      # 探针参数，与 dev 保持一致
   readiness:
     periodSeconds: 5
     failureThreshold: 3
@@ -27,13 +27,13 @@ probes:
     failureThreshold: 3
 
 ingress:
-  enabled: true
+  enabled: false                             # 集群里还没装 ingress controller，先关；装好后改成 true 即可
   className: nginx
   host: myapp.local
   path: /
 
-hpa:
-  enabled: true
+hpa:                                         # 生产开自动扩缩容
+  enabled: true                              # 注意：HPA 依赖 metrics-server，未安装时 TARGETS 会显示 <unknown>
   minReplicas: 3
   maxReplicas: 6
   targetCPUUtilizationPercentage: 50

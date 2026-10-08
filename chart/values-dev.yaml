@@ -1,4 +1,4 @@
-replicaCount: 3                              # dev 环境副本数，等下我们就是改这一行来验证自动同步
+replicaCount: 1                              # dev 环境副本数，等下我们就是改这一行来验证自动同步
 
 image:
   repository: ghcr.io/xiaxing12/myapp        # 换成 GitHub Actions 构建出来的镜像
